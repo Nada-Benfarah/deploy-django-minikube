@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-mysql
+  labels:
+    app: django
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: django
+    tier: mysql
+  clusterIP: None
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: django-mysql-pvc
+  labels:
+    app: django
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+  labels:
+    app: django-mysql
+spec:
+  selector:
+    matchLabels:
+      app: django
+      tier: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: django
+        tier: mysql
+    spec:
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: django-mysql-pvc
+      containers:
+        - image: mariadb
+          name: mysql
+          ports:
+            - containerPort: 3306
+              name: mysql
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql/data
+          env:
+            - name: MARIADB_DATABASE
+              value: djangodb
+            - name: MARIADB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-password
+                  key: password

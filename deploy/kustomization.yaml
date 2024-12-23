@@ -1,0 +1,6 @@
+secretGenerator:
+  - name: db-password
+    literals:
+      - password=tekup
+resources:
+  - mysql.yaml
