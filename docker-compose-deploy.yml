@@ -1,0 +1,50 @@
+services:
+  django:
+    build: .
+    restart: always
+    volumes:
+      - static-data:/vol/web
+    environment:
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - SECRET_KEY=${DJANGO_SECRET_KEY}
+      - ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mariadb
+    restart: always
+    volumes:
+      - mysql-data:/var/lib/mysql/data
+    environment:
+      - MARIADB_DATABASE=${DB_NAME}
+      - MARIADB_USER=${DB_USER}
+      - MARIADB_PASSWORD=${DB_PASS}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "db", "-U", "dbuser"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  proxy:
+    build:
+      context: ./proxy
+    restart: always
+    depends_on:
+      - django
+    ports:
+      - "8080:8080"
+    volumes:
+      - static-data:/vol/web
+    environment:
+      - LISTEN_PORT=8000
+      - APP_HOST=django
+      - APP_PORT=8080
+
+volumes:
+  postgres-data:
+  static-data:
