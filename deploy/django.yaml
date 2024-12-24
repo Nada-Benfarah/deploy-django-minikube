@@ -6,7 +6,7 @@ metadata:
     app: django
 spec:
   ports:
-    - port: 8000
+    - port: 3306
   selector:
     app: django
     tier: app
@@ -83,7 +83,7 @@ spec:
           image: django-proxy:latest
           imagePullPolicy: Never
           ports:
-            - containerPort: 8000
+            - containerPort: 3306
           volumeMounts:
             - name: django-app-data
               mountPath: /vol/web
@@ -91,4 +91,4 @@ spec:
             - name: APP_HOST
               value: '127.0.0.1'
             - name: APP_PORT
-              value: '8080'
+              value: '3306:3306'

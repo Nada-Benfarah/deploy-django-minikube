@@ -4,7 +4,7 @@ secretGenerator:
       - password=tekup
   - name: django
     literals:
-      - secret_key=secretkey123
+      - secret=secretkey123
 resources:
   - mysql.yaml
   - django.yaml
